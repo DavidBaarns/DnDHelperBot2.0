@@ -99,7 +99,7 @@ function roll(message) {
         rollMessage += ` = ${roll}`;
     }
 
-    console.log(rollMessage);
-    message.reply(rollMessage);
+    console.log(message.member.displayName + " " + rollMessage);
+    message.reply(message.member.displayName + " " + rollMessage);
 }
 client.login(process.env.TOKEN)
