@@ -20,23 +20,39 @@ client.on('messageCreate', (message) => {
 
     }
 
-
 })
 function roll(message) {
+    // This code should be inside an event listener for a message event
+    const channel = message.channel;
+    const channelName = channel.name;
+
+    // This code should be inside an event listener for a message event
+    const guild = message.guild;
+    const serverName = guild.name;
+
+
+
+    //Get current date and time
+    let currentDate = new Date();
+    let formattedDate = currentDate.toLocaleDateString();
+    let options = { hour: "numeric", minute: "numeric", second: "numeric", hour12: true };
+    let formattedTime = currentDate.toLocaleTimeString("en-US", options);
+    let logTimeAndUser = formattedDate + " " + formattedTime + " " + "Server: " + serverName + " Channel: " + channelName + " User: " +  message.member.displayName + " ";
+
     // Parse the command and the dice string
     messageLower = message.content.toLowerCase();
     const [, diceString] = messageLower.split(' ');
 
     // Check if dice string is empty first
     if (!diceString) {
-        message.reply('Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.');
-        console.log("Error: diceString is empty");
+        message.reply("Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.");
+        console.log(logTimeAndUser + "Error: diceString is empty");
         return;
     }
 
     // Check if the dice string is in the correct format
     if (!diceString.match(/^\d+d\d+(?:\+\d+|-\d+)?$/)) {
-        console.log('Error, incorrect dice format');
+        console.log(logTimeAndUser + "Error, incorrect dice format");
         message.reply('Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.');
         return;
     }
@@ -99,7 +115,8 @@ function roll(message) {
         rollMessage += ` = ${roll}`;
     }
 
-    console.log(message.member.displayName + " " + rollMessage);
+    console.log(logTimeAndUser + rollMessage);
+
     message.reply(message.member.displayName + " " + rollMessage);
 }
 client.login(process.env.TOKEN)
