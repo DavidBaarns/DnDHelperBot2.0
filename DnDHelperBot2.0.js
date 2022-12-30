@@ -30,9 +30,17 @@ function roll(message) {
 
     // Get current date and time
     let currentDate = new Date();
-    let formattedDate = currentDate.toLocaleDateString();
-    let options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
-    let formattedTime = currentDate.toLocaleTimeString('en-US', options);
+    let formattedDate = currentDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+    });
+    let formattedTime = currentDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+    let formattedDateTime = `${formattedDate} ${formattedTime}`;
+    
     let logTimeAndUser =
         formattedDate +
         ' ' +
