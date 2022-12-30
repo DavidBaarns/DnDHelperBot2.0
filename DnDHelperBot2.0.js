@@ -7,20 +7,18 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
     ],
-})
+});
 
 client.on('ready', () => {
     console.log(`${client.user.tag} logged in`);
-})
+});
 
 client.on('messageCreate', (message) => {
-
     if (message.content.toLowerCase().startsWith('!roll')) {
         roll(message);
-
     }
+});
 
-})
 function roll(message) {
     // This code should be inside an event listener for a message event
     const channel = message.channel;
@@ -30,14 +28,23 @@ function roll(message) {
     const guild = message.guild;
     const serverName = guild.name;
 
-
-
-    //Get current date and time
+    // Get current date and time
     let currentDate = new Date();
     let formattedDate = currentDate.toLocaleDateString();
-    let options = { hour: "numeric", minute: "numeric", second: "numeric", hour12: true };
-    let formattedTime = currentDate.toLocaleTimeString("en-US", options);
-    let logTimeAndUser = formattedDate + " " + formattedTime + " " + "Server: " + serverName + " Channel: " + channelName + " User: " +  message.member.displayName + " ";
+    let options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
+    let formattedTime = currentDate.toLocaleTimeString('en-US', options);
+    let logTimeAndUser =
+        formattedDate +
+        ' ' +
+        formattedTime +
+        ' ' +
+        'Server: ' +
+        serverName +
+        ' Channel: ' +
+        channelName +
+        ' User: ' +
+        message.member.displayName +
+        ' ';
 
     // Parse the command and the dice string
     messageLower = message.content.toLowerCase();
@@ -45,27 +52,28 @@ function roll(message) {
 
     // Check if dice string is empty first
     if (!diceString) {
-        message.reply("Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.");
-        console.log(logTimeAndUser + "Error: diceString is empty");
+        const invalidDiceStringMessage =
+            'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
+        message.reply(invalidDiceStringMessage);
+        console.log(logTimeAndUser + 'Error: diceString is empty');
         return;
     }
 
+    // Use a regular expression to capture the plus or minus sign and the modifier
+    const diceFormatRegex = /^(\d+)d(\d+)([+-]\d+)?$/;
+    const diceFormatMatch = diceString.match(diceFormatRegex);
+
     // Check if the dice string is in the correct format
-    if (!diceString.match(/^\d+d\d+(?:\+\d+|-\d+)?$/)) {
-        console.log(logTimeAndUser + "Error, incorrect dice format");
-        message.reply('Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.');
+    if (!diceFormatMatch) {
+        console.log(logTimeAndUser + 'Error, incorrect dice format');
+        message.reply(invalidDiceStringMessage);
         return;
     }
 
     // Get the base dice roll and the modifier
-    const diceStringParts = diceString.split(/d/);
-    const numDice = diceStringParts[0];
-    const diceTypeString = diceStringParts[1];
-    const diceType = parseInt(diceTypeString, 10);
-
-    // Use a regular expression to capture the plus or minus sign and the modifier
-    const modifierRegex = /([+-])(\d+)/;
-    const modifierMatch = diceString.match(modifierRegex);
+    const numDice = parseInt(diceFormatMatch[1], 10);
+    const diceType = parseInt(diceFormatMatch[2], 10);
+    const diceModifier = diceFormatMatch[3] ? parseInt(diceFormatMatch[3], 10) : 0;
 
     // Create a message with the result of the dice roll
     let rollMessage = `Rolled ${diceString}: `;
@@ -75,48 +83,40 @@ function roll(message) {
         if (i > 0) {
             rollMessage += ' + ';
         }
-        if (diceType == 20) {
-            if (diceRoll == 20) {
-                rollMessage += "___***"
+        if (diceType === 20) {
+            if (diceRoll === 20) {
+                rollMessage += '___***';
                 rollMessage += diceRoll;
-                rollMessage += "***___"
-            }
-            else if (diceRoll == 1) {
-                rollMessage += "___***"
+                rollMessage += '***___';
+            } else if (diceRoll === 1) {
+                rollMessage += '___***';
                 rollMessage += diceRoll;
-                rollMessage += "***___"
-            }
-            else {
+                rollMessage += '***___';
+            } else {
                 rollMessage += diceRoll;
             }
-        }
-        else {
+        } else {
             rollMessage += diceRoll;
-
         }
-
         roll += diceRoll;
     }
 
-    // Check if a modifier was found
-    if (modifierMatch) {
-        // Parse the modifier as an integer
-        const modifier = parseInt(modifierMatch[2], 10);
-
-        // Add or subtract the modifier from the roll and update the roll message
-        if (modifierMatch[1] === '-') {
-            roll -= modifier;
-            rollMessage += ` - ${modifier} = ${roll}`;
-        } else {
-            roll += modifier;
-            rollMessage += ` + ${modifier} = ${roll}`;
-        }
-    } else {
-        rollMessage += ` = ${roll}`;
+    // Add the modifier to the roll if it was specified
+    if (diceModifier !== 0) {
+        roll += diceModifier;
+        rollMessage += ` ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)}`;
     }
 
-    console.log(logTimeAndUser + rollMessage);
+    // Send the roll message to the channel
+    if (diceModifier === 0 && numDice === 1) {
+        // No modifier and single dice, don't append roll to message
+        channel.send(message.member.displayName + ' ' + rollMessage);
+    } else {
+        // Modifier or multiple dice, append roll to message
+        channel.send(message.member.displayName + ' ' + rollMessage + ` = ${roll}`);
+    }
+    console.log(logTimeAndUser + `${diceString} = ${roll}`);
 
-    message.reply(message.member.displayName + " " + rollMessage);
 }
 client.login(process.env.TOKEN)
+
