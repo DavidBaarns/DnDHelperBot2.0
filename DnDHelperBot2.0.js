@@ -110,13 +110,12 @@ function roll(message) {
     // Send the roll message to the channel
     if (diceModifier === 0 && numDice === 1) {
         // No modifier and single dice, don't append roll to message
-        channel.send(message.member.displayName + ' ' + rollMessage);
+        message.reply(message.member.displayName + ' ' + rollMessage);
     } else {
         // Modifier or multiple dice, append roll to message
-        channel.send(message.member.displayName + ' ' + rollMessage + ` = ${roll}`);
+        message.reply(message.member.displayName + ' ' + rollMessage + ` = ${roll}`);
     }
     console.log(logTimeAndUser + `${diceString} = ${roll}`);
 
 }
 client.login(process.env.TOKEN)
-
