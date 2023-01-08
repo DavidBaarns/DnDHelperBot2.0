@@ -40,7 +40,7 @@ function roll(message) {
         minute: '2-digit',
     });
     let formattedDateTime = `${formattedDate} ${formattedTime}`;
-    
+
     let logTimeAndUser =
         formattedDate +
         ' ' +
@@ -57,26 +57,39 @@ function roll(message) {
     // Parse the command and the dice string
     messageLower = message.content.toLowerCase();
     const [, diceString] = messageLower.split(' ');
-
+    const invalidDiceStringMessage =
+        'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
     // Check if dice string is empty first
     if (!diceString) {
-        const invalidDiceStringMessage =
-            'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
+
         message.reply(invalidDiceStringMessage);
         console.log(logTimeAndUser + 'Error: diceString is empty');
         return;
     }
 
-    // Use a regular expression to capture the plus or minus sign and the modifier
-    const diceFormatRegex = /^(\d+)d(\d+)([+-]\d+)?$/;
-    const diceFormatMatch = diceString.match(diceFormatRegex);
+    try {
+        // Use a regular expression to capture the plus or minus sign and the modifier
+        const diceFormatRegex = /^(\d+)d(\d+)([+-]\d+)?$/;
+        const diceFormatMatch = diceString.match(diceFormatRegex);
 
-    // Check if the dice string is in the correct format
-    if (!diceFormatMatch) {
-        console.log(logTimeAndUser + 'Error, incorrect dice format');
+        // Check if the dice string is in the correct format
+        if (!diceFormatMatch) {
+            throw new Error('Incorrect dice format');
+        }
+
+        // Check if the diceFormatMatch variable is null
+        if (diceFormatMatch === null) {
+            throw new Error('Error parsing dice string');
+        }
+
+        // Code to handle the parsed dice string goes here...
+        // This code can use the diceFormatMatch variable
+    } catch (error) {
+        console.log(logTimeAndUser + error.message);
         message.reply(invalidDiceStringMessage);
         return;
     }
+
 
     // Get the base dice roll and the modifier
     const numDice = parseInt(diceFormatMatch[1], 10);
@@ -110,19 +123,22 @@ function roll(message) {
     }
 
     // Add the modifier to the roll if it was specified
-    if (diceModifier !== 0) {
-        roll += diceModifier;
-        rollMessage += ` ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)}`;
+    let displayName = message.member.displayName;
+
+    // Check if display name contains [*], and if so extract text between the brackets
+    let match = displayName.match(/\[(.*?)\]/);
+    if (match) {
+        displayName = match[1];
     }
 
-    // Send the roll message to the channel
     if (diceModifier === 0 && numDice === 1) {
         // No modifier and single dice, don't append roll to message
-        message.reply(message.member.displayName + ' ' + rollMessage);
+        message.reply(displayName + ' ' + rollMessage);
     } else {
         // Modifier or multiple dice, append roll to message
-        message.reply(message.member.displayName + ' ' + rollMessage + ` = ${roll}`);
+        message.reply(displayName + ' ' + rollMessage + ` = ${roll}`);
     }
+
     console.log(logTimeAndUser + `${diceString} = ${roll}`);
 
 }
