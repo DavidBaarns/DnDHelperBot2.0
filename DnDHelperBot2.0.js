@@ -40,7 +40,7 @@ function roll(message) {
         minute: '2-digit',
     });
     let formattedDateTime = `${formattedDate} ${formattedTime}`;
-    
+
     let logTimeAndUser =
         formattedDate +
         ' ' +
@@ -116,13 +116,22 @@ function roll(message) {
     }
 
     // Send the roll message to the channel
+    let displayName = message.member.displayName;
+
+    // Check if display name contains [*], and if so extract text between the brackets
+    let match = displayName.match(/\[(.*?)\]/);
+    if (match) {
+        displayName = match[1];
+    }
+
     if (diceModifier === 0 && numDice === 1) {
         // No modifier and single dice, don't append roll to message
-        message.reply(message.member.displayName + ' ' + rollMessage);
+        message.reply(displayName + ' ' + rollMessage);
     } else {
         // Modifier or multiple dice, append roll to message
-        message.reply(message.member.displayName + ' ' + rollMessage + ` = ${roll}`);
+        message.reply(displayName + ' ' + rollMessage + ` = ${roll}`);
     }
+
     console.log(logTimeAndUser + `${diceString} = ${roll}`);
 
 }
