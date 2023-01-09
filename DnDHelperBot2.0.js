@@ -57,13 +57,14 @@ function roll(message) {
     // Parse the command and the dice string
     messageLower = message.content.toLowerCase();
     const [, diceString] = messageLower.split(' ');
+    
+    const invalidDiceStringMessage =
+            'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
 
     // Check if dice string is empty first
-    if (!diceString) {
-        const invalidDiceStringMessage =
-            'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
+    if (!diceString) {      
         message.reply(invalidDiceStringMessage);
-        console.log(logTimeAndUser + 'Error: diceString is empty');
+        console.log(logTimeAndUser + " Message: " + message.content + ' | Error: diceString is empty');
         return;
     }
 
@@ -73,7 +74,7 @@ function roll(message) {
 
     // Check if the dice string is in the correct format
     if (!diceFormatMatch) {
-        console.log(logTimeAndUser + 'Error, incorrect dice format');
+        console.log(logTimeAndUser + " Message: " + message.content + ' | Error, incorrect dice format');
         message.reply(invalidDiceStringMessage);
         return;
     }
@@ -132,7 +133,7 @@ function roll(message) {
         message.reply(displayName + ' ' + rollMessage + ` = ${roll}`);
     }
 
-    console.log(logTimeAndUser + `${diceString} = ${roll}`);
+    console.log(logTimeAndUser + `| ${diceString} = ${roll}`);
 
 }
 client.login(process.env.TOKEN)
