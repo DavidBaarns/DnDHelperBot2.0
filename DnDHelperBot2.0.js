@@ -17,7 +17,15 @@ client.on('messageCreate', (message) => {
     if (message.content.toLowerCase().startsWith('!roll')) {
         roll(message);
     }
+    if (message.content.toLowerCase().startsWith('!adv')) {
+        advRoll(message, "adv");
+    }
+    if (message.content.toLowerCase().startsWith('!dis')) {
+        advRoll(message, "dis");
+    }
+
 });
+
 
 function roll(message) {
     // This code should be inside an event listener for a message event
@@ -57,12 +65,12 @@ function roll(message) {
     // Parse the command and the dice string
     messageLower = message.content.toLowerCase();
     const [, diceString] = messageLower.split(' ');
-    
+
     const invalidDiceStringMessage =
-            'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
+        'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
 
     // Check if dice string is empty first
-    if (!diceString) {      
+    if (!diceString) {
         message.reply(invalidDiceStringMessage);
         console.log(logTimeAndUser + " Message: " + message.content + ' | Error: diceString is empty');
         return;
@@ -136,4 +144,115 @@ function roll(message) {
     console.log(logTimeAndUser + `| ${diceString} = ${roll}`);
 
 }
+
+function advRoll(message, commandType) {
+    // This code should be inside an event listener for a message event
+    const channel = message.channel;
+    const channelName = channel.name;
+
+    // This code should be inside an event listener for a message event
+    const guild = message.guild;
+    const serverName = guild.name;
+
+    // Get current date and time
+    let currentDate = new Date();
+    let formattedDate = currentDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+    });
+    let formattedTime = currentDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+    let formattedDateTime = `${formattedDate} ${formattedTime}`;
+
+    let logTimeAndUserAdv =
+        formattedDate +
+        ' ' +
+        formattedTime +
+        ' ' +
+        'Server: ' +
+        serverName +
+        ' Channel: ' +
+        channelName +
+        ' User: ' +
+        message.member.displayName +
+        ' ';
+
+    // Parse the command and the dice string
+    messageLower = message.content.toLowerCase();
+    const [, diceString] = messageLower.split(' ');
+
+    const invalidDiceStringMessage =
+        'Invalid dice string. The correct format is NdX+M, where N is the number of dice, X is the type of dice, and M is the optional modifier.';
+
+    // Check if dice string is empty first
+    if (!diceString) {
+        message.reply(invalidDiceStringMessage);
+        console.log(`${logTimeAndUserAdv} Message: ${message.content} | Error: diceString is empty`);
+        return;
+    }
+
+    // Use a regular expression to capture the plus or minus sign and the modifier
+    const diceFormatRegex = /^(\d+)d(\d+)([+-]\d+)?$/;
+    const diceFormatMatch = diceString.match(diceFormatRegex);
+
+    // Check if the dice string is in the correct format
+    if (!diceFormatMatch) {
+        console.log(`${logTimeAndUserAdv} Message: ${message.content} | Error, incorrect dice format`);
+        message.reply(invalidDiceStringMessage);
+        return;
+    }
+
+    // Get the base dice roll and the modifier
+    const numDice = parseInt(diceFormatMatch[1], 10);
+    const diceType = parseInt(diceFormatMatch[2], 10);
+    const diceModifier = diceFormatMatch[3] ? parseInt(diceFormatMatch[3], 10) : 0;
+
+    // Create a message with the result of the dice roll
+    let roll1 = 0;
+    for (let i = 0; i < numDice; i++) {
+        const diceRoll1 = Math.floor(Math.random() * diceType) + 1;
+        roll1 += diceRoll1;
+    }
+    const roll1Result = roll1 + diceModifier;
+
+    let roll2 = 0;
+    for (let i = 0; i < numDice; i++) {
+        const diceRoll2 = Math.floor(Math.random() * diceType) + 1;
+        roll2 += diceRoll2;
+    }
+    const roll2Result = roll2 + diceModifier;
+
+    let displayName = message.member.displayName;
+    let match = displayName.match(/\[(.*?)\]/);
+    if (match) {
+        displayName = match[1];
+    }
+
+    if (commandType == "adv") {
+        let rollMessage = `${displayName} rolled ${diceString} with advantage:\n`;
+        rollMessage += `Roll 1: ${diceModifier !== 0 ? `${roll1} ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)} = ${roll1Result}` : roll1}\n`;
+        rollMessage += `Roll 2: ${diceModifier !== 0 ? `${roll2} ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)} = ${roll2Result}` : roll2}\n`;
+        let finalRoll = Math.max(roll1Result, roll2Result);
+        rollMessage += `The higher roll is: ${finalRoll}`;
+        console.log(`${logTimeAndUserAdv} Message: ${message.content} | Roll: ${rollMessage}`);
+        message.reply(rollMessage);
+    }
+    if (commandType == "dis") {
+        let rollMessage = `${displayName} rolled ${diceString} with disadvantage:\n`;
+        rollMessage += `Roll 1: ${diceModifier !== 0 ? `${roll1} ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)} = ${roll1Result}` : roll1}\n`;
+        rollMessage += `Roll 2: ${diceModifier !== 0 ? `${roll2} ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)} = ${roll2Result}` : roll2}\n`;
+        let finalRoll = Math.min(roll1Result, roll2Result);
+        rollMessage += `The lower roll is: ${finalRoll}`;
+        console.log(`${logTimeAndUserAdv} Message: ${message.content} | Roll: ${rollMessage}`);
+        message.reply(rollMessage);
+    }
+
+
+}
+
+
+
 client.login(process.env.TOKEN)
