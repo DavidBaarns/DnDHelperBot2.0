@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require('discord.js')
+const { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder } = require('discord.js')
 require('dotenv/config')
 
 const client = new Client({
@@ -26,7 +26,6 @@ client.on('messageCreate', (message) => {
 
 });
 
-
 function roll(message) {
     // This code should be inside an event listener for a message event
     const channel = message.channel;
@@ -49,18 +48,7 @@ function roll(message) {
     });
     let formattedDateTime = `${formattedDate} ${formattedTime}`;
 
-    let logTimeAndUser =
-        formattedDate +
-        ' ' +
-        formattedTime +
-        ' ' +
-        'Server: ' +
-        serverName +
-        ' Channel: ' +
-        channelName +
-        ' User: ' +
-        message.member.displayName +
-        ' ';
+    let logTimeAndUser = `${formattedDate} ${formattedTime} Server: ${serverName} Channel: ${channelName} User: ${message.member.displayName}`;
 
     // Parse the command and the dice string
     messageLower = message.content.toLowerCase();
@@ -72,7 +60,7 @@ function roll(message) {
     // Check if dice string is empty first
     if (!diceString) {
         message.reply(invalidDiceStringMessage);
-        console.log(logTimeAndUser + " Message: " + message.content + ' | Error: diceString is empty');
+        console.log(`${logTimeAndUser} Message: ${message.content} | Error: diceString is empty`);
         return;
     }
 
@@ -82,7 +70,7 @@ function roll(message) {
 
     // Check if the dice string is in the correct format
     if (!diceFormatMatch) {
-        console.log(logTimeAndUser + " Message: " + message.content + ' | Error, incorrect dice format');
+        console.log(`${logTimeAndUser} Message: ${message.content} | Error, incorrect dice format`);
         message.reply(invalidDiceStringMessage);
         return;
     }
@@ -95,26 +83,13 @@ function roll(message) {
     // Create a message with the result of the dice roll
     let rollMessage = `Rolled ${diceString}: `;
     let roll = 0;
+    let diceRoll = 0;
     for (let i = 0; i < numDice; i++) {
-        const diceRoll = Math.floor(Math.random() * diceType) + 1;
+        diceRoll = Math.floor(Math.random() * diceType) + 1;
         if (i > 0) {
             rollMessage += ' + ';
         }
-        if (diceType === 20) {
-            if (diceRoll === 20) {
-                rollMessage += '___***';
-                rollMessage += diceRoll;
-                rollMessage += '***___';
-            } else if (diceRoll === 1) {
-                rollMessage += '___***';
-                rollMessage += diceRoll;
-                rollMessage += '***___';
-            } else {
-                rollMessage += diceRoll;
-            }
-        } else {
-            rollMessage += diceRoll;
-        }
+        rollMessage += diceRoll;
         roll += diceRoll;
     }
 
@@ -135,15 +110,29 @@ function roll(message) {
 
     if (diceModifier === 0 && numDice === 1) {
         // No modifier and single dice, don't append roll to message
-        message.reply(displayName + ' ' + rollMessage);
+        finalMessage = `${displayName} ${rollMessage}`
     } else {
         // Modifier or multiple dice, append roll to message
-        message.reply(displayName + ' ' + rollMessage + ` = ${roll}`);
+        finalMessage = `${displayName} ${rollMessage} = ${roll}`;
+    }
+    if (numDice == 1 || diceType == 20) {
+        if (diceRoll == 20) {
+            nat(message, finalMessage, 20);
+        }
+        else if (diceRoll == 1) {
+            nat(message, finalMessage, 1);
+        }
+        else {
+            message.reply(finalMessage);
+        }
+    }
+    else {
+        message.reply(finalMessage);
     }
 
-    console.log(logTimeAndUser + `| ${diceString} = ${roll}`);
-
+    console.log(`${logTimeAndUser} | ${diceString} = ${roll}`);
 }
+
 
 function advRoll(message, commandType) {
     // This code should be inside an event listener for a message event
@@ -238,8 +227,13 @@ function advRoll(message, commandType) {
         let finalRoll = Math.max(roll1Result, roll2Result);
         rollMessage += `The higher roll is: ${finalRoll}`;
         console.log(`${logTimeAndUserAdv} Message: ${message.content} | Roll: ${rollMessage}`);
-        message.reply(rollMessage);
+        if (Math.max(roll1, roll2) == 20) {
+            nat(message, rollMessage, 20);
+        } else {
+            message.reply(rollMessage);
+        }
     }
+
     if (commandType == "dis") {
         let rollMessage = `${displayName} rolled ${diceString} with disadvantage:\n`;
         rollMessage += `Roll 1: ${diceModifier !== 0 ? `${roll1} ${diceModifier > 0 ? '+' : '-'} ${Math.abs(diceModifier)} = ${roll1Result}` : roll1}\n`;
@@ -247,12 +241,23 @@ function advRoll(message, commandType) {
         let finalRoll = Math.min(roll1Result, roll2Result);
         rollMessage += `The lower roll is: ${finalRoll}`;
         console.log(`${logTimeAndUserAdv} Message: ${message.content} | Roll: ${rollMessage}`);
-        message.reply(rollMessage);
+        if (Math.min(roll1, roll2) == 1) {
+            nat(message, rollMessage, 1);
+        } else {
+            message.reply(rollMessage);
+        }
+
     }
-
-
 }
 
+function nat(message, rollMessage, natNumber) {
+    const file = new AttachmentBuilder(`./Gifs/Nat${natNumber}.gif`);
+    const embed = new EmbedBuilder()
+        .setTitle(`Nat ${natNumber}!`)
+        .setImage(`attachment://Nat${natNumber}.gif`)
+        .setDescription(rollMessage);
+    message.reply({ embeds: [embed], files: [file] });
+}
 
 
 client.login(process.env.TOKEN)
