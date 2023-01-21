@@ -115,7 +115,8 @@ function roll(message) {
         // Modifier or multiple dice, append roll to message
         finalMessage = `${displayName} ${rollMessage} = ${roll}`;
     }
-    if (numDice == 1 || diceType == 20) {
+
+    if (numDice == 1 && diceType == 20) {
         if (diceRoll == 20) {
             nat(message, finalMessage, 20);
         }
@@ -227,7 +228,7 @@ function advRoll(message, commandType) {
         let finalRoll = Math.max(roll1Result, roll2Result);
         rollMessage += `The higher roll is: ${finalRoll}`;
         console.log(`${logTimeAndUserAdv} Message: ${message.content} | Roll: ${rollMessage}`);
-        if (Math.max(roll1, roll2) == 20) {
+        if (Math.max(roll1, roll2) == 20 && diceType == 20 && numDice == 1) {
             nat(message, rollMessage, 20);
         } else {
             message.reply(rollMessage);
@@ -241,7 +242,7 @@ function advRoll(message, commandType) {
         let finalRoll = Math.min(roll1Result, roll2Result);
         rollMessage += `The lower roll is: ${finalRoll}`;
         console.log(`${logTimeAndUserAdv} Message: ${message.content} | Roll: ${rollMessage}`);
-        if (Math.min(roll1, roll2) == 1) {
+        if (Math.min(roll1, roll2) == 1 && diceType == 20 && numDice == 1) {
             nat(message, rollMessage, 1);
         } else {
             message.reply(rollMessage);
@@ -258,6 +259,4 @@ function nat(message, rollMessage, natNumber) {
         .setDescription(rollMessage);
     message.reply({ embeds: [embed], files: [file] });
 }
-
-
 client.login(process.env.TOKEN)
